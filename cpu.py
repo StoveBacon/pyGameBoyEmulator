@@ -1,3 +1,4 @@
+import json
 from collections import namedtuple
 from dataclasses import dataclass
 from functools import partial
@@ -72,6 +73,7 @@ class CPU:
         self.reg = self.dmg_8bit_registers()
         self.mem = Memory()
         self.operands: dict[OperandKey, Operand | str] = {}
+        self.make_parameter_table()
         self.cycles = 0
 
     # Register setup methods
@@ -90,9 +92,46 @@ class CPU:
             "L": 0x4D
         }
 
-    # Flag accessor methods
+    def make_dispatch_table(self):
+        """Creates a dispatch table mapping opcodes to instructions.
+
+        opcodes.json structure:
+        unprefixed
+            opcode
+                mnemonic
+                cycles
+                operands
+            ...
+        prefixed
+            (same as unprefixed)
+        """
+
+        f = open("opcodes.json")
+        opcode_data = json.load(f)
+        for prefix_type, instructions in opcode_data.items():
+            for opcode, data in instructions.items():
+                name = data["mnemonic"]
+                cycles = data["cycles"]
+                ins_operands = []
+                for operand in data["operands"]:
+                    opr_name = operand["name"]
+                    opr_imm = operand["immediate"]
+                    # First two are guaranteed, these two might not be
+                    opr_inc = operand.get("increment", False)
+                    opr_dec = operand.get("decrement", False)
+                    opr_key = OperandKey(opr_name, opr_imm, opr_inc, opr_dec)
+                    ins_operands.append(self.operands[opr_key])
+                ins_fn = getattr(self, name)
+                instruction = partial(ins_fn, cycles, *ins_operands)
+                if prefix_type == "unprefixed":
+                    self.opcodes[opcode] = instruction
+                else:
+                    self.prefixed[opcode] = instruction
+
+
+    # Parameter creation methods
     def get_flag(self, mask, negated=False):
-        return (self.reg["F"] & mask) is not negated
+        return bool(self.reg["F"] & mask) is not negated
 
     def set_flag(self, mask, val):
         if val:
@@ -162,6 +201,17 @@ class CPU:
         signed_get = partial(signed_read, imm_operand)
         self.operands[OperandKey("r8")] = Operand(signed_get, None)
 
+        def sp_signed_add(get):
+            sp_get = self.operands[OperandKey("SP")].get
+            val = sp_get() + get()
+            hc = val & 0x10
+            c = val & 0x10000
+            flags = (0b0000 | hc << 1 | c) << 4
+            self.operands[OperandKey("F")].set(flags)
+            return val
+        sp_get = partial(sp_signed_add, signed_get)
+        self.operands[OperandKey("SP+8")] = Operand(sp_get, None)
+
         def imm16_read(get):
             val = get()
             val += get() << 8
@@ -214,11 +264,10 @@ class CPU:
             self.operands[num_key] = num
 
         # Hex designator for some 16-bit operations
-        for hex_num in range(0x00, 0x39, 8):
-            hex_num_id = "0x{0:02X}".format(hex_num)
+        for hex_num in range(0x00, 0x38 + 1, 8):
+            hex_num_id = "{0:02X}H".format(hex_num)
             hex_num_key = OperandKey(hex_num_id)
             self.operands[hex_num_key] = hex_num
 
-c = CPU()
-c.make_parameter_table()
-print(list(c.operands.keys()))
+# c = CPU()
+# print(list(c.operands.keys()))
