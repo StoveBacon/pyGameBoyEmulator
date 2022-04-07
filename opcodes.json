@@ -1036,7 +1036,7 @@
 			],
 			"operands": [
 				{
-					"name": "NC",
+					"name": "NCY",
 					"immediate": true
 				},
 				{
@@ -1212,7 +1212,7 @@
 			],
 			"operands": [
 				{
-					"name": "C",
+					"name": "CY",
 					"immediate": true
 				},
 				{
@@ -2913,10 +2913,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "B",
 					"immediate": true
 				}
@@ -2936,10 +2932,6 @@
 				4
 			],
 			"operands": [
-				{
-					"name": "A",
-					"immediate": true
-				},
 				{
 					"name": "C",
 					"immediate": true
@@ -2961,10 +2953,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "D",
 					"immediate": true
 				}
@@ -2984,10 +2972,6 @@
 				4
 			],
 			"operands": [
-				{
-					"name": "A",
-					"immediate": true
-				},
 				{
 					"name": "E",
 					"immediate": true
@@ -3009,10 +2993,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "H",
 					"immediate": true
 				}
@@ -3033,10 +3013,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "L",
 					"immediate": true
 				}
@@ -3056,10 +3032,6 @@
 				8
 			],
 			"operands": [
-				{
-					"name": "A",
-					"immediate": true
-				},
 				{
 					"name": "HL",
 					"immediate": false
@@ -3083,10 +3055,6 @@
 				{
 					"name": "A",
 					"immediate": true
-				},
-				{
-					"name": "A",
-					"immediate": true
 				}
 			],
 			"immediate": true,
@@ -3104,10 +3072,6 @@
 				4
 			],
 			"operands": [
-				{
-					"name": "A",
-					"immediate": true
-				},
 				{
 					"name": "B",
 					"immediate": true
@@ -3129,10 +3093,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "C",
 					"immediate": true
 				}
@@ -3152,10 +3112,6 @@
 				4
 			],
 			"operands": [
-				{
-					"name": "A",
-					"immediate": true
-				},
 				{
 					"name": "D",
 					"immediate": true
@@ -3177,10 +3133,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "E",
 					"immediate": true
 				}
@@ -3200,10 +3152,6 @@
 				4
 			],
 			"operands": [
-				{
-					"name": "A",
-					"immediate": true
-				},
 				{
 					"name": "H",
 					"immediate": true
@@ -3225,10 +3173,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "L",
 					"immediate": true
 				}
@@ -3249,10 +3193,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "HL",
 					"immediate": false
 				}
@@ -3272,10 +3212,6 @@
 				4
 			],
 			"operands": [
-				{
-					"name": "A",
-					"immediate": true
-				},
 				{
 					"name": "A",
 					"immediate": true
@@ -3457,10 +3393,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "B",
 					"immediate": true
 				}
@@ -3480,10 +3412,6 @@
 				4
 			],
 			"operands": [
-				{
-					"name": "A",
-					"immediate": true
-				},
 				{
 					"name": "C",
 					"immediate": true
@@ -3505,10 +3433,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "D",
 					"immediate": true
 				}
@@ -3528,10 +3452,6 @@
 				4
 			],
 			"operands": [
-				{
-					"name": "A",
-					"immediate": true
-				},
 				{
 					"name": "E",
 					"immediate": true
@@ -3553,10 +3473,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "H",
 					"immediate": true
 				}
@@ -3576,10 +3492,6 @@
 				4
 			],
 			"operands": [
-				{
-					"name": "A",
-					"immediate": true
-				},
 				{
 					"name": "L",
 					"immediate": true
@@ -3601,10 +3513,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "HL",
 					"immediate": false
 				}
@@ -3624,10 +3532,6 @@
 				4
 			],
 			"operands": [
-				{
-					"name": "A",
-					"immediate": true
-				},
 				{
 					"name": "A",
 					"immediate": true
@@ -4423,10 +4327,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "d8",
 					"bytes": 1,
 					"immediate": true
@@ -4592,10 +4492,6 @@
 			],
 			"operands": [
 				{
-					"name": "A",
-					"immediate": true
-				},
-				{
 					"name": "d8",
 					"bytes": 1,
 					"immediate": true
@@ -4638,7 +4534,7 @@
 			],
 			"operands": [
 				{
-					"name": "NC",
+					"name": "NCY",
 					"immediate": true
 				}
 			],
@@ -4679,7 +4575,7 @@
 			],
 			"operands": [
 				{
-					"name": "NC",
+					"name": "NCY",
 					"immediate": true
 				},
 				{
@@ -4718,7 +4614,7 @@
 			],
 			"operands": [
 				{
-					"name": "NC",
+					"name": "NCY",
 					"immediate": true
 				},
 				{
@@ -4805,7 +4701,7 @@
 			],
 			"operands": [
 				{
-					"name": "C",
+					"name": "CY",
 					"immediate": true
 				}
 			],
@@ -4841,7 +4737,7 @@
 			],
 			"operands": [
 				{
-					"name": "C",
+					"name": "CY",
 					"immediate": true
 				},
 				{
@@ -4880,7 +4776,7 @@
 			],
 			"operands": [
 				{
-					"name": "C",
+					"name": "CY",
 					"immediate": true
 				},
 				{
@@ -4917,10 +4813,6 @@
 				8
 			],
 			"operands": [
-				{
-					"name": "A",
-					"immediate": true
-				},
 				{
 					"name": "d8",
 					"bytes": 1,
@@ -5112,7 +5004,7 @@
 			}
 		},
 		"0xE8": {
-			"mnemonic": "ADD",
+			"mnemonic": "LD",
 			"bytes": 2,
 			"cycles": [
 				16
@@ -5123,8 +5015,7 @@
 					"immediate": true
 				},
 				{
-					"name": "r8",
-					"bytes": 1,
+					"name": "SP+r8",
 					"immediate": true
 				}
 			],
@@ -5431,13 +5322,7 @@
 					"immediate": true
 				},
 				{
-					"name": "SP",
-					"increment": true,
-					"immediate": true
-				},
-				{
-					"name": "r8",
-					"bytes": 1,
+					"name": "SP+r8",
 					"immediate": true
 				}
 			],
