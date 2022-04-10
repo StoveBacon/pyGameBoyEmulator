@@ -1,3 +1,9 @@
+## For the future
+- Consider decoupling parameter generation, instruction definition,
+
+
+# Info
+
 Added operands
 - SP+r8
 

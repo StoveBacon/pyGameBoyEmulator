@@ -4,22 +4,25 @@ from dataclasses import dataclass
 from functools import partial
 from operator import setitem
 
+from bitarray import util
+
 from memory import Memory
+from registers import SUBN_MASK, carry
 
 ZERO_MASK = 0x80
-SUBN_MASK = 0x40
+SUB_MASK = 0x40
 HALFC_MASK = 0x20
 CARRY_MASK = 0x10
 
 reg_ids = [
+    "A",
+    "F",
     "B",
     "C",
     "D",
     "E",
     "H",
-    "L",
-    "A",
-    "F"
+    "L"
 ]
 
 nonsplit_addr_reg_ids = [
@@ -45,14 +48,19 @@ direct_ids = [
 all_reg_ids = reg_ids + nonsplit_addr_reg_ids + split_addr_reg_ids
 
 # All registers that can have their contents directly read or set.
-direct_access_reg_ids = reg_ids + nonsplit_addr_reg_ids
+direct_access_reg_ids = nonsplit_addr_reg_ids + reg_ids
 
 # All 16 bit registers. Can be used to read any memory address
 all_addr_reg_ids = nonsplit_addr_reg_ids + split_addr_reg_ids
 
+default_register_values = {
+    # Order: PC, SP, A, F, B, C, D, E, H, L (direct_access_reg_ids)
+    "DMG": [0x0100, 0xFFFE, 0x01, 0xB0, 0x00, 0x13, 0x00, 0xD8, 0x01, 0x4D]
+}
+
 Operand = namedtuple("Operand", ["get", "set"])
 
-@dataclass(frozen=True, repr=False)
+@dataclass(frozen=True)
 class OperandKey:
     name: str
     immediate: bool = True
@@ -67,30 +75,34 @@ class OperandKey:
             rep = "(" + rep + ")"
         return rep
 
+@dataclass
+class Instruction:
+    """Tracking for instrucion definition and metadata"""
+    name: str
+    operands: list[Operand]
+    cycles: list[int]
+    flag_strings: list[str]
+    eval: partial
+
+    def __post_init__(self):
+        self.flags = list(self.flag_strings.values())
+
 class CPU:
 
     def __init__(self):
-        self.reg = self.dmg_8bit_registers()
+        self.reg = self.make_registers(model="DMG")
         self.mem = Memory()
         self.operands: dict[OperandKey, Operand | str] = {}
+        self.opcodes: dict[int, Instruction] = {}
+        self.prefixed: dict[int, Instruction] = {}
+        self.instruction: Instruction = None
         self.make_parameter_table()
         self.cycles = 0
 
-    # Register setup methods
-    def dmg_8bit_registers(self):
-        """Returns the 8-bit registers and their default values for the DMG."""
-        return {
-            "PC": 0x0100,
-            "SP": 0xFFFE,
-            "A": 0x01,
-            "F": 0xB0,
-            "B": 0x00,
-            "C": 0x13,
-            "D": 0x00,
-            "E": 0xD8,
-            "H": 0x01,
-            "L": 0x4D
-        }
+    def make_registers(self, model):
+        """Take a model number and return an initialized registry dict"""
+        values = default_register_values[model]
+        return dict(zip(direct_access_reg_ids, values))
 
     def make_dispatch_table(self):
         """Creates a dispatch table mapping opcodes to instructions.
@@ -105,13 +117,14 @@ class CPU:
         prefixed
             (same as unprefixed)
         """
-
         f = open("opcodes.json")
         opcode_data = json.load(f)
         for prefix_type, instructions in opcode_data.items():
             for opcode, data in instructions.items():
+                opcode = int(opcode, 16)
                 name = data["mnemonic"]
-                cycles = data["cycles"]
+                cycles = data["cycles"] # Will be unused for now
+                flags = data["flags"]
                 ins_operands = []
                 for operand in data["operands"]:
                     opr_name = operand["name"]
@@ -121,23 +134,13 @@ class CPU:
                     opr_dec = operand.get("decrement", False)
                     opr_key = OperandKey(opr_name, opr_imm, opr_inc, opr_dec)
                     ins_operands.append(self.operands[opr_key])
-                ins_fn = getattr(self, name)
-                instruction = partial(ins_fn, cycles, *ins_operands)
+                # ins_fn = partial(getattr(self, name), *ins_operands)
+                ins_fn = "ins_fn"
+                instruction = Instruction(name, ins_operands, cycles, flags, ins_fn)
                 if prefix_type == "unprefixed":
                     self.opcodes[opcode] = instruction
                 else:
                     self.prefixed[opcode] = instruction
-
-
-    # Parameter creation methods
-    def get_flag(self, mask, negated=False):
-        return bool(self.reg["F"] & mask) is not negated
-
-    def set_flag(self, mask, val):
-        if val:
-            self.reg["F"] |= mask
-        else:
-            self.reg["F"] &= ~mask
 
     def make_parameter_table(self):
         self.make_access_table()
@@ -204,13 +207,12 @@ class CPU:
         def sp_signed_add(get):
             sp_get = self.operands[OperandKey("SP")].get
             val = sp_get() + get()
-            hc = val & 0x10
-            c = val & 0x10000
-            flags = (0b0000 | hc << 1 | c) << 4
-            self.operands[OperandKey("F")].set(flags)
-            return val
+            self.set_flag(ZERO_MASK, 0)
+            self.set_flag(SUB_MASK, 0)
+            self.half_carry(val)
+            return self.carry(val, True)
         sp_get = partial(sp_signed_add, signed_get)
-        self.operands[OperandKey("SP+8")] = Operand(sp_get, None)
+        self.operands[OperandKey("SP+r8")] = Operand(sp_get, None)
 
         def imm16_read(get):
             val = get()
@@ -269,5 +271,79 @@ class CPU:
             hex_num_key = OperandKey(hex_num_id)
             self.operands[hex_num_key] = hex_num
 
-# c = CPU()
-# print(list(c.operands.keys()))
+
+    # Instructions and register operations
+    def apply_flags(self):
+        for index, flag in enumerate(self.instruction.flags):
+            if flag == "0":
+                self.reg["F"] &= ~(1 << (3 - index))
+            elif flag == "1":
+                self.reg["F"] |= (1 << (3 - index))
+
+    def get_flag(self, mask, negated=False):
+        return bool(self.reg["F"] & mask) is not negated
+
+    def set_flag(self, mask, val):
+        if val:
+            self.reg["F"] |= mask
+        else:
+            self.reg["F"] &= ~mask
+
+    def zero(self, value):
+        self.set_flag(ZERO_MASK, not value)
+
+    def is_subtraction(self, is_sub):
+        self.set_flag(SUBN_MASK, is_sub)
+
+    def half_carry(self, oper1, oper2, carry=0, is16bit=False):
+        mask = 0xFFF if is16bit else 0xF
+        check = 0x1000 if is16bit else 0x10
+        half_carry = ((oper1 & mask) + (oper2 & mask) + carry) & check
+        self.set_flag(HALFC_MASK, half_carry)
+
+    def carry(self, value, is16bit=False):
+        max = 0xFFFF if is16bit else 0xFF
+        self.set_flag(CARRY_MASK, 0 < value < max)
+
+    def ADC(self, operand):
+        """Add with carry."""
+        A = self.reg["A"]
+        val = operand.get()
+        carry = self.get_flag(CARRY_MASK)
+        result = A + val + carry
+        self.reg["A"] = result & 0xFF
+        self.zero(result)
+        self.half_carry(A, val, carry)
+        self.carry(result)
+
+    def ADD(self, oper1, oper2=None):
+        """Add. 8-bit or 16-bit if 2 values are provided."""
+        is16bit = oper2 is not None
+        if is16bit:
+            val1 = oper1.get()
+            val2 = oper2.get()
+            result = val1 + val2
+            oper1.set(result & 0xFFFF)
+        else:
+            val1 = self.reg["A"]
+            val2 = oper1.get()
+            result = val1 + val2
+            self.reg["A"] = result & 0xFF
+            self.zero(result)
+        self.half_carry(val1, val2, is16bit=is16bit)
+        self.carry(result, is16bit)
+
+    def AND(self, operand):
+        result = self.reg["A"] & operand.get()
+        self.reg["A"] = result
+        self.zero(result)
+
+    def BIT(self, bit, operand):
+        result = (1 << bit.get()) & operand.get()
+        self.zero(result)
+
+
+
+c = CPU()
+c.make_dispatch_table()
+print(c.reg)
