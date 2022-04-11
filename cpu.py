@@ -342,8 +342,13 @@ class CPU:
         result = (1 << bit.get()) & operand.get()
         self.zero(result)
 
+class Instruction:
+    def __init__(self, mnemonic, cycles, flags, operands):
+        self.mnemonic = mnemonic
+        self.cycles = cycles
+        self.flags = flags
+        self.operands = operands
 
-
-c = CPU()
-c.make_dispatch_table()
-print(c.reg)
+class Arithmetic(Instruction):
+    def __init__(self, mnemonic, cycles, flags, operands):
+        super().__init__(mnemonic, cycles, flags, operands)
